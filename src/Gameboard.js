@@ -1,4 +1,4 @@
-import { Ship } from "./Ship";
+import { Ship } from "./Ship2.js";
 const cell = "~"; // empty cell / water
 const miss = "•"; // missed shot
 const hit = "X"; // hit shot
@@ -12,7 +12,8 @@ const Boardstate = Object.freeze({
 });
 class Gameboard {
   board;
-  #attacks;
+  ships;
+  attacks;
   constructor([rows = 10, cols = 10], ships = [], attacks = []) {
     this.buildGameboard(rows, cols);
   }
@@ -29,55 +30,42 @@ class Gameboard {
     );
   }
 
-  placeAShip(ship, [row, col]) {
-    if (
-      !this.#verifyCorrectShipPlacement(ship, [row, col]) &&
-      !this.#noOtherShipsNearby(ship)
-    )
-      return;
-    if (!ship.vertical)
-      for (let i = col; i < col + ship.length; i++)
-        this.board[row][i] = Boardstate.ship;
-    else
-      for (let i = row; i < row + ship.length; i++)
-        this.board[i][col] = Boardstate.ship;
+  placeShip(headCoords = [], length = 1, vertical = false) {
+    if (!headCoords || headCoords.length === 0) return false;
+    const shipCoords = this.buildShipCoords(headCoords, length, vertical);
+    if (!shipCoords) throw new Error("Invalid coordinates for ship placement!");
+    const ship = new Ship(length, vertical, shipCoords, headCoords);
+    this.ships.push(ship);
   }
 
-  #verifyCorrectShipPlacement(ship, [row, col]) {
-    if (
-      !this.#validCoords([row, col]) ||
-      row + (!ship.vertical ? ship.length : 0) >= this.board.length ||
-      col + (ship.vertical ? ship.length : 0) >= this.board[0].length
-    ) {
-      throw new Error("Ship coordinates must be in range of the board!!");
-      return false;
-    }
-    if (!this.#noOtherShipsNearby(ship)) {
-      throw new Error("Ship must be at least 1 cell away from any other ship!");
-      return false;
-    }
-    return true;
-  }
+  #getCoordsAroundTheShip(ship) {
+    const vertical = ship.getOrientation; // vertical = true, horizontal = false;
+    const coords = ship.getCoords();
+    if (!coords || coords.length === 0) return [];
+    const coordsAround = [];
+    const rows = coords.map((coord) => coord[0]);
+    const cols = coords.map((coord) => coord[1]);
+    const minRow = Math.min(...rows) - 1; // Expand box by 1
+    const maxRow = Math.max(...rows) + 1; // Expand box by 1
+    const minCol = Math.min(...cols) - 1; // Expand box by 1
+    const maxCol = Math.max(...cols) + 1; // Expand box by 1
 
-  #noOtherShipsNearby(ship) {
-    let shipFoundNearby = false;
-    const shipCoords = ship.getCoords();
-    shipCoords.forEach((coords) => {
-      const nearbyCoords = this.#nearbyCoords(coords);
-      nearbyCoords.forEach((nearCoords) => {
-        // might add new condition for hit/sunk ships
+    for (let row = minRow; row <= maxRow; row++) {
+      for (let col = minCol; col <= maxCol; col++) {
+        const newCoord = [row, col];
+        // check if the coord is valid & is not part of the ship itself
         if (
-          this.board[nearCoords[0]][nearCoords[1]] !== Boardstate.empty &&
-          !this.#coordsBelongToTheShip(ship, nearCoords) // dont really need to check this
-          // since we did not place the ship yet in placeAShip() method
+          this.validCoords(newCoord) &&
+          !coords.some(
+            (shipCoord) => shipCoord[0] === row && shipCoord[1] === col
+          )
         )
-          shipFoundNearby = true;
-      });
-    });
-    return !shipFoundNearby;
+          coordsAround.push(newCoord);
+      }
+    }
+    return coordsAround;
   }
-
-  #coordsBelongToTheShip(ship, [row, col]) {
+  coordsBelongToTheShip(ship, [row, col]) {
     if (ship.vertical) {
       if (ship.col !== col || row < ship.row || row >= ship.row + ship.length)
         return false;
@@ -89,7 +77,7 @@ class Gameboard {
     }
     return true;
   }
-  #nearbyCoords([row, col]) {
+  nearbyCoords([row, col]) {
     const coords = [
       [row, col - 1], // left
       [row, col + 1], // right
@@ -100,11 +88,11 @@ class Gameboard {
       [row + 1, col - 1], // left down
       [row + 1, col + 1], // right down
     ];
-    const validCoords = coords.filter((coord) => this.#validCoords(coord));
+    const validCoords = coords.filter((coord) => this.validCoords(coord));
     return validCoords;
   }
-
-  #validCoords([row, col]) {
+  // checks if specific coordinate is in bounds of the board
+  validCoords([row, col]) {
     if (
       !Number.isInteger(row) ||
       !Number.isInteger(col) ||
@@ -117,11 +105,35 @@ class Gameboard {
     return true;
   }
 
+  buildShipCoords(head = [], length = 1, vertical = false) {
+    if (!head || head.length === 0 || length <= 0 || !this.validCoords(head))
+      return null;
+    const coords = [];
+    if (vertical) {
+      // stay inbound
+      if (head[0] + length <= this.board.length)
+        for (let i = head[0]; i < head[0] + length; i++)
+          coords.push([i, head[1]]);
+    }
+    // horizontal
+    else {
+      // stay inbound
+      if (head[1] + length <= this.board[0].length)
+        for (let i = head[1]; i < head[1] + length; i++)
+          coords.push([head[0], i]);
+    }
+    return coords;
+  }
+
   stringifyTheBoard() {
+    const boardCopy = JSON.parse(JSON.stringify(this.board));
+    this.ships.forEach((ship) =>
+      ship.coords.forEach((coord) => (boardCopy[coord[0]][coord[1]] = "#"))
+    );
     let s = "";
-    for (let row = 0; row < this.board.length; row++) {
-      for (let col = 0; col < this.board[row].length; col++) {
-        s = s.concat(this.board[row][col]);
+    for (let row = 0; row < this.boardCopy.length; row++) {
+      for (let col = 0; col < this.boardCopy[row].length; col++) {
+        s = s.concat(this.boardCopy[row][col]);
       }
       s = s.concat("\n");
     }
