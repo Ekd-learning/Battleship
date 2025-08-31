@@ -2,18 +2,21 @@ class Ship {
   length;
   hitNumber;
   sunk;
-  coordinates;
+  row;
+  col;
   vertical;
   constructor(
     length = 1,
     vertical = false,
-    coordinates = [],
+    row,
+    col,
     hitNumber = 0,
     sunk = false
   ) {
     this.length = length;
     this.vertical = vertical;
-    this.coordinates = coordinates;
+    this.row = row;
+    this.col = col;
     this.hitNumber = hitNumber;
     this.sunk = sunk;
   }
@@ -33,6 +36,16 @@ class Ship {
       return true;
     } else return false;
   };
+  getCoords() {
+    const coords = [];
+    if (this.vertical)
+      for (let row = this.row; row < this.row + this.length; i++)
+        coords.push([row, this.col]);
+    else
+      for (let col = this.col; col < this.col + this.length; col++)
+        coords.push([this.row, col]);
+    return coords;
+  }
 }
 
 export { Ship };
