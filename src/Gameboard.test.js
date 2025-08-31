@@ -1,5 +1,5 @@
-import Gameboard from "./Gameboard";
-import { Ship } from "./Ship";
+import Gameboard from "./Gameboard2";
+import { Ship } from "./Ship2";
 
 describe("b Class Constructor", () => {
   describe("2D Array Creation", () => {
@@ -48,14 +48,15 @@ describe("b Class Constructor", () => {
       }
     });
 
-    test("placing 2 ships nearby [1,3](L: 3, Horizontal) & [2,7](L:1)", () => {
+    test("placing 2 ships nearby [1,3](L: 3, H) & [0,6](L:3, V)", () => {
       const b = new Gameboard([10, 10]);
       const ship1 = new Ship(3, false, [1, 3]);
-      const ship2 = new Ship(1, false, [2, 7]);
+      const ship2 = new Ship(3, false, [2, 7]);
       b.placeAShip(ship1, [1, 3]);
       console.log("The board after 1st ship placement:");
       console.log(b.stringifyTheBoard());
-      b.placeAShip(ship2, [2, 7]);
+      console.log("valid nearby coords for check:", b.nearbyCoords([0, 7]));
+      b.placeAShip(ship2, [1, 3]);
       console.log("The board after 2nd ship placement:");
       console.log(b.stringifyTheBoard());
     });
