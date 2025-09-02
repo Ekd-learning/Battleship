@@ -7,21 +7,26 @@ class Ship {
   constructor(
     length = 1,
     vertical = false,
+    head = [],
     coords = [],
     hitNumber = 0,
     sunk = false
   ) {
     this.length = length;
     this.vertical = vertical;
-    // if (coords && coords.length !== 0) {
-    this.coords = vertical
-      ? coords.sort(this.#compareRows)
-      : coords.sort(this.#compareCols);
-    // }
-    // else{
-    //     this.buildShipCoordinates(this.head, )
-    // }
-    this.head = [this.coords[0][0][0]];
+    if (!coords || coords.length === 0) {
+      this.head = head;
+      this.coords = this.#buildshipCoords(
+        this.length,
+        this.vertical,
+        this.head
+      );
+    } else {
+      this.coords = vertical
+        ? coords.sort(this.#compareRows)
+        : coords.sort(this.#compareCols);
+      this.head = [this.coords[0][0][0]];
+    }
     this.hitNumber = hitNumber;
     this.sunk = sunk;
   }
@@ -104,6 +109,17 @@ class Ship {
     return false;
   }
   // setCoords() helper methods end.
+  #buildshipCoords(length, vertical, head = []) {
+    if (!head || head.length === 0) return;
+    const coords = [];
+    for (
+      let i = vertical ? head[0] : head[1];
+      i < (vertical ? head[0] : head[1]) + length;
+      i++
+    )
+      coords.push(vertical ? [i, head[1]] : [head[0], i]);
+    return coords;
+  }
 }
 
 export { Ship };

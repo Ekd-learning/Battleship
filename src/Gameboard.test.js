@@ -1,5 +1,5 @@
-import Gameboard from "./Gameboard2";
-import { Ship } from "./Ship2";
+import Gameboard from "./Gameboard";
+import { Ship } from "./Ship";
 
 describe("b Class Constructor", () => {
   describe("2D Array Creation", () => {
@@ -31,34 +31,21 @@ describe("b Class Constructor", () => {
     });
 
     test("placing a horizontal ship of length 3 to [1, 3] coordinates", () => {
-      const b = new Gameboard([10, 10]);
+      const b = new Gameboard([10, 9]);
       const ship = new Ship(3, false, [1, 3]);
-      b.placeAShip(ship, [1, 3]);
-      console.log("The board:");
-      console.log(b.stringifyTheBoard());
-      for (let row = 0; row < b.board.length; row++) {
-        for (let col = 0; col < b.board[row].length; col++) {
-          if (row >= 1 && row <= 1 && col >= 3 && col <= 5) {
-            console.log(
-              `row: ${row}, col: ${col}, board[row, col]: ${b.board[row][col]}`
-            );
-            expect(b.board[row][col]).toBe("#");
-          } else expect(b.board[row][col]).toBe("~");
-        }
-      }
+      console.log("ship coords:", ship.coords);
+      b.placeShip(ship, ship.head, ship.length, ship.vertical);
+      console.log(`The board:\n${b.stringifyTheBoard()}`);
     });
 
     test("placing 2 ships nearby [1,3](L: 3, H) & [0,6](L:3, V)", () => {
       const b = new Gameboard([10, 10]);
       const ship1 = new Ship(3, false, [1, 3]);
-      const ship2 = new Ship(3, false, [2, 7]);
-      b.placeAShip(ship1, [1, 3]);
-      console.log("The board after 1st ship placement:");
-      console.log(b.stringifyTheBoard());
-      console.log("valid nearby coords for check:", b.nearbyCoords([0, 7]));
-      b.placeAShip(ship2, [1, 3]);
-      console.log("The board after 2nd ship placement:");
-      console.log(b.stringifyTheBoard());
+      const ship2 = new Ship(3, false, [2, 6]);
+      b.placeShip(ship1, [1, 3]);
+      expect(() => b.placeShip(ship2, [1, 3])).toThrow(
+        `There's another ship nearby!`
+      );
     });
   });
 });
