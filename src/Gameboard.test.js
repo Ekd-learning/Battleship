@@ -1,5 +1,5 @@
-import Gameboard from "./Gameboard";
-import { Ship } from "./Ship";
+import Gameboard from "./Gameboard2";
+import { Ship } from "./Ship2";
 
 describe("b Class Constructor", () => {
   describe("2D Array Creation", () => {
