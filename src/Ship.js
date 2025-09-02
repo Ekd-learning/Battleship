@@ -63,51 +63,51 @@ class Ship {
     return false;
   }
   // setCoords() helper methods begin.
-  #compareRows(a, b) {
-    if (a[0] === b[0]) return 0;
-    return a[0] < b[0] ? -1 : 1;
-  }
-  #compareCols(a, b) {
-    if (a[1] === b[1]) return 0;
-    return a[1] < b[1] ? -1 : 1;
-  }
+  // #compareRows(a, b) {
+  //   if (a[0] === b[0]) return 0;
+  //   return a[0] < b[0] ? -1 : 1;
+  // }
+  // #compareCols(a, b) {
+  //   if (a[1] === b[1]) return 0;
+  //   return a[1] < b[1] ? -1 : 1;
+  // }
   //check if coords are sequential (ships are lines with no gaps)
-  #verifyCoords(coords, vertical) {
-    if (!coords) return false;
-    // vertical
-    if (vertical) {
-      let colConst = coords[0][1]; // first coord's col
-      if (
-        coords.every((coord) => coord[1] === colConst) && // all cols are the same
-        coords.every(
-          (
-            coord,
-            index // all rows are sequential
-          ) =>
-            index === coords.length - 1 ||
-            coord[0] - coords[index + 1][0] === -1
-        )
-      )
-        return true;
-    }
-    // horizontal
-    else {
-      let rowConst = coords[0][0]; // first coord's row
-      if (
-        coords.every((coord) => coord[0] === rowConst) && // all rows are the same
-        coords.every(
-          (
-            coord,
-            index // all cols are sequential
-          ) =>
-            index === coords.length - 1 ||
-            coord[1] - coords[index + 1][1] === -1
-        )
-      )
-        return true;
-    }
-    return false;
-  }
+  // #verifyCoords(coords, vertical) {
+  //   if (!coords) return false;
+  //   // vertical
+  //   if (vertical) {
+  //     let colConst = coords[0][1]; // first coord's col
+  //     if (
+  //       coords.every((coord) => coord[1] === colConst) && // all cols are the same
+  //       coords.every(
+  //         (
+  //           coord,
+  //           index // all rows are sequential
+  //         ) =>
+  //           index === coords.length - 1 ||
+  //           coord[0] - coords[index + 1][0] === -1
+  //       )
+  //     )
+  //       return true;
+  //   }
+  //   // horizontal
+  //   else {
+  //     let rowConst = coords[0][0]; // first coord's row
+  //     if (
+  //       coords.every((coord) => coord[0] === rowConst) && // all rows are the same
+  //       coords.every(
+  //         (
+  //           coord,
+  //           index // all cols are sequential
+  //         ) =>
+  //           index === coords.length - 1 ||
+  //           coord[1] - coords[index + 1][1] === -1
+  //       )
+  //     )
+  //       return true;
+  //   }
+  //   return false;
+  // }
   // setCoords() helper methods end.
   #buildshipCoords(length, vertical, head = []) {
     if (!head || head.length === 0) return;
@@ -183,6 +183,7 @@ class Ship {
     return false;
   }
   // setCoords() helper methods end.
+  #coordsBelongToTheShip(coords = [row, col]) {}
 }
 
 export { Ship };

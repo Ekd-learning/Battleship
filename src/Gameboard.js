@@ -4,22 +4,15 @@ class Gameboard {
   board;
   ships;
   attacks;
-  constructor([rows = 10, cols = 10], ships = [], attacks = []) {
-    this.buildGameboard(rows, cols);
-    this.ships = ships;
+  gameover;
+  constructor([rows = 10, cols = 10]) {
+    this.#buildGameboard(rows, cols); // this.board = 2D array of chars
+    this.ships = [];
+    this.attacks = [];
+    this.gameover = false;
   }
-  buildGameboard(rows, cols) {
-    if (
-      rows <= 0 ||
-      cols <= 0 ||
-      !Number.isInteger(rows) ||
-      !Number.isInteger(cols)
-    )
-      throw new Error("Rows & Columns must be positive integers!");
-    this.board = Array.from({ length: rows }, () =>
-      Array.from({ length: cols }, () => "~")
-    );
-  }
+
+  // PUBLIC INTERFACE
 
   placeShip(ship, headCoords = [], length = 1, vertical = false) {
     if (!ship && (!headCoords || headCoords.length === 0))
@@ -40,8 +33,71 @@ class Gameboard {
     }
   }
 
+  receiveAttack(coords = []) {
+    if (!this.#validCoords(coords))
+      throw new Error(
+        `Unable to receive an attack: ${coords} is out of bounds!`
+      );
+    if (this.attacks.some((attack) => this.#coordsMatch(attack, coords)))
+      throw new Error(`[${coords}] coordinates were attacked previously!`);
+    const row = coords[0];
+    const col = coords[1];
+    let shipTarget = undefined;
+    // find if we hit a ship
+    this.ships.forEach((ship) => {
+      ship.coords.forEach((coord) => {
+        if (this.#coordsMatch(coord, coords)) shipTarget = ship;
+      });
+    });
+    // not a ship
+    if (!shipTarget) this.board[row][col] = "O";
+    // hit a ship
+    else {
+      this.attacks.push(coords);
+      shipTarget.hit();
+      this.board[row][col] = "X";
+      if (shipTarget.isSunk())
+        shipTarget.coords.forEach((coord) => {
+          this.board[coord[0]][coord[1]] = "T";
+          if (this.#allShipsAresunk()) this.gameover = true;
+        });
+    }
+    this.gameOver();
+  }
+
+  // HELPER METHODS
+
+  #buildGameboard(rows, cols) {
+    if (
+      rows <= 0 ||
+      cols <= 0 ||
+      !Number.isInteger(rows) ||
+      !Number.isInteger(cols)
+    )
+      throw new Error("Rows & Columns must be positive integers!");
+    this.board = Array.from({ length: rows }, () =>
+      Array.from({ length: cols }, () => "~")
+    );
+  }
+
+  // finish later
+  gameOver() {
+    if (this.gameover) {
+      return true;
+    }
+    return false;
+  }
+
+  #allShipsAresunk() {
+    return this.ships.every((ship) => ship.isSunk());
+  }
+
+  #coordsMatch(coord1, coord2) {
+    return coord1[0] === coord2[0] && coord1[1] === coord2[1];
+  }
+
   #getCoordsAroundTheShip(ship) {
-    const vertical = ship.getOrientation; // vertical = true, horizontal = false;
+    // const vertical = ship.getOrientation; // vertical = true, horizontal = false;
     const coords = ship.getCoords();
     if (!coords || coords.length === 0) return [];
     const coordsAround = [];
@@ -51,7 +107,6 @@ class Gameboard {
     const maxRow = Math.max(...rows) + 1; // Expand box by 1
     const minCol = Math.min(...cols) - 1; // Expand box by 1
     const maxCol = Math.max(...cols) + 1; // Expand box by 1
-
     for (let row = minRow; row <= maxRow; row++) {
       for (let col = minCol; col <= maxCol; col++) {
         const newCoord = [row, col];
@@ -67,6 +122,7 @@ class Gameboard {
     }
     return coordsAround;
   }
+
   // checks if specific coordinate is in bounds of the board
   #validCoords([row, col]) {
     if (
@@ -89,10 +145,8 @@ class Gameboard {
     this.ships.forEach((ship) => allShipsCoords.push(...ship.coords));
     const shipFoundNearby = coordsToCheck.some((checkCoord) =>
       this.ships.some((existingShip) =>
-        existingShip.coords.some(
-          (existingCoord) =>
-            existingCoord[0] === checkCoord[0] &&
-            existingCoord[1] === checkCoord[1]
+        existingShip.coords.some((existingCoord) =>
+          this.#coordsMatch(existingCoord, checkCoord)
         )
       )
     );
@@ -119,8 +173,9 @@ class Gameboard {
     return coords;
   }
 
-  // prints the ships too, doesn't modify the original board(no ships displayed there)
-  stringifyTheBoard() {
+  // prints the ships too, doesn't modify the original board
+  // For private use only (shows the ships)
+  stringifyTheBoardPrivately() {
     const boardCopy = this.board.map((row) => [...row]);
     this.ships.forEach((ship) =>
       ship.coords.forEach((coord) => (boardCopy[coord[0]][coord[1]] = "#"))
@@ -129,6 +184,20 @@ class Gameboard {
     for (let row = 0; row < boardCopy.length; row++) {
       for (let col = 0; col < boardCopy[row].length; col++) {
         s = s.concat(boardCopy[row][col]);
+      }
+      s = s.concat("\n");
+    }
+    return s;
+  }
+
+  // prints the ships too, doesn't modify the original board
+  // For public use only (shows the sunk ships only)
+  stringifyTheBoardPublicly() {
+    // const boardCopy = this.board.map((row) => [...row]);
+    let s = "";
+    for (let row = 0; row < this.board.length; row++) {
+      for (let col = 0; col < this.board[row].length; col++) {
+        s = s.concat(this.board[row][col]);
       }
       s = s.concat("\n");
     }
