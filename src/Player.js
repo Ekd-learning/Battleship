@@ -2,10 +2,9 @@ import Gameboard from "./Gameboard";
 
 class Player {
   board;
-  human;
-  constructor(human = true) {
+  enemyBoard;
+  constructor() {
     this.board = new Gameboard([10, 10]);
-    this.human = human;
   }
   attack(coords = [], enemyBoard) {
     if (!enemyBoard || enemyBoard === this.board)
@@ -16,4 +15,12 @@ class Player {
   }
 }
 
-export default Player;
+class Human extends Player {
+  board;
+  enemyBoard;
+}
+
+class AI extends Player {
+  board;
+  enemyBoard;
+}
